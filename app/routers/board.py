@@ -1,0 +1,57 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.core.dependencies import get_db, get_current_user
+from app.core.permissions import get_membership_or_404
+from app.models.board import Board
+from app.models.board_member import BoardMember
+from app.models.user import User
+from app.schemas.board import BoardCreate, BoardOut
+
+router = APIRouter(prefix="/boards", tags=["boards"])
+
+
+@router.post("", response_model=BoardOut, status_code=status.HTTP_201_CREATED)
+def post_board(board_data: BoardCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    new_board = Board(title=board_data.title, owner_id=current_user.id)
+    db.add(new_board)
+    db.flush()  # assigns new_board.id without ending the transaction
+
+    # The creator is always auto-enrolled as this board's first Admin —
+    # from here on, authorization checks go through board_members, not
+    # Board.owner_id directly (owner_id is kept only as a historical record
+    # of who originally created the board).
+    db.add(BoardMember(board_id=new_board.id, user_id=current_user.id, role="admin"))
+
+    db.commit()
+    db.refresh(new_board)
+    return new_board
+
+
+@router.get("", response_model=list[BoardOut])
+def get_boards(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return (
+        db.query(Board)
+        .join(BoardMember, BoardMember.board_id == Board.id)
+        .filter(BoardMember.user_id == current_user.id)
+        .all()
+    )
+
+
+@router.get("/{board_id}", response_model=BoardOut)
+def get_board(board_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    get_membership_or_404(db, board_id, current_user)  # any role may view
+    board = db.query(Board).filter(Board.id == board_id).first()
+    if board is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Board not found")
+    return board
+
+
+@router.delete("/{board_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_board(board_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    get_membership_or_404(db, board_id, current_user, allowed_roles=("admin",))
+    board = db.query(Board).filter(Board.id == board_id).first()
+    if board is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Board not found")
+    db.delete(board)
+    db.commit()
+    return None

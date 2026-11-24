@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flowboard — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --border: #e4e7f1;
+    --text: #1c1e2e;
+    --text-muted: #6b7086;
+    --accent: #5b5bf6;
+    --accent-2: #8b5cf6;
+    --accent-hover: #4747d6;
+    --accent-soft: #eef0ff;
+    --danger: #e0376a;
+    --danger-bg: #fde8ef;
+    --success: #0f9960;
+    --success-bg: #e3f9ef;
+    --list-bg: #eef0f6;
+    --admin: #8b5cf6;
+    --manager: #2f9e6e;
+    --developer: #2f80c7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(91, 91, 246, 0.25);
+  }
+
+  header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  header .brand .mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+
+  header .who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.16);
+    border: none;
+    color: #fff;
+    padding: 5px 12px 5px 5px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .avatar-btn:hover { background: rgba(255, 255, 255, 0.26); }
+
+  .avatar-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  header button.plain {
+    background: rgba(255, 255, 255, 0.16);
+    border: none;
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  header button.plain:hover { background: rgba(255, 255, 255, 0.26); }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 26px;
+  }
+
+  .error-banner {
+    display: none;
+    background: var(--danger-bg);
+    color: var(--danger);
+    padding: 12px 16px;
+    border-radius: 9px;
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+
+  .layout {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .panel h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+    font-weight: 700;
+  }
+
+  .boards-panel { width: 250px; flex-shrink: 0; }
+
+  .board-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 11px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 3px;
+    transition: background 0.12s;
+  }
+
+  .board-item:hover { background: var(--bg); }
+  .board-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+
+  .empty-note { font-size: 13px; color: var(--text-muted); padding: 8px 2px; }
+
+  .new-board-form { margin-top: 14px; display: flex; gap: 6px; }
+
+  .new-board-form input {
+    flex: 1; min-width: 0; padding: 9px 10px;
+    border: 1.5px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit;
+  }
+
+  .btn-accent {
+    padding: 9px 13px; border: none; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 13px; font-weight: 700; font-family: inherit;
+    cursor: pointer; flex-shrink: 0; transition: transform 0.1s;
+  }
+  .btn-accent:hover { transform: translateY(-1px); }
+
+  .board-view { flex: 1; min-width: 0; }
+
+  .board-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .board-view-header h2 {
+    font-family: "Poppins", sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  .role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .role-pill.admin { background: #f1e9ff; color: var(--admin); }
+  .role-pill.manager { background: #e4f6ed; color: var(--manager); }
+  .role-pill.developer { background: #e5f1fb; color: var(--developer); }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn-outline {
+    padding: 8px 13px; border: 1.5px solid var(--border); border-radius: 7px;
+    background: #fff; color: var(--text); font-size: 12.5px; font-weight: 600; font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger-outline {
+    padding: 8px 13px; border: 1.5px solid var(--danger-bg); border-radius: 7px;
+    background: var(--danger-bg); color: var(--danger); font-size: 12.5px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
+  }
+
+  .lists-row { display: flex; gap: 14px; align-items: flex-start; overflow-x: auto; padding-bottom: 10px; }
+
+  .list-column { background: var(--list-bg); border-radius: 10px; padding: 11px; width: 240px; flex-shrink: 0; }
+  .list-column h3 { font-size: 13px; margin: 0 0 10px; padding: 2px 4px; font-weight: 700; }
+
+  .new-list-card {
+    background: var(--list-bg); border: 1.5px dashed var(--border); border-radius: 10px;
+    padding: 11px; width: 240px; flex-shrink: 0;
+  }
+  .new-list-card input {
+    width: 100%; padding: 9px 10px; border: 1.5px solid var(--border);
+    border-radius: 7px; font-size: 13px; font-family: inherit; margin-bottom: 8px;
+  }
+  .new-list-card button {
+    width: 100%; padding: 9px 0; border: none; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  }
+
+  .cards-stack { display: flex; flex-direction: column; gap: 7px; margin-bottom: 9px; }
+
+  .card-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 11px; font-size: 13px; box-shadow: 0 1px 2px rgba(28, 30, 46, 0.05);
+  }
+  .card-item.mine { border-left: 3px solid var(--accent); }
+  .card-item .card-title { color: var(--text); font-weight: 500; }
+  .card-item .card-description { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+  .card-item .card-meta {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 8px; gap: 6px;
+  }
+  .card-item .card-assignee {
+    font-size: 10.5px; font-weight: 700; color: var(--accent); background: var(--accent-soft);
+    padding: 3px 8px; border-radius: 10px; white-space: nowrap;
+  }
+  .card-item .card-actions { display: flex; gap: 6px; }
+  .card-item .card-actions button {
+    border: none; background: transparent; color: var(--text-muted); font-size: 11px;
+    cursor: pointer; padding: 2px 5px; font-family: inherit; font-weight: 600;
+  }
+  .card-item .card-actions button:hover { color: var(--accent); }
+  .card-item .card-actions button.danger-text:hover { color: var(--danger); }
+
+  .add-card-form { display: flex; flex-direction: column; gap: 7px; }
+  .add-card-form input, .add-card-form textarea {
+    width: 100%; padding: 8px 9px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 12px; font-family: inherit; resize: none;
+  }
+  .add-card-form button {
+    padding: 7px 0; border: none; border-radius: 7px; background: transparent;
+    color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; text-align: left;
+  }
+  .add-card-form button:hover { color: var(--accent); }
+
+  .placeholder { color: var(--text-muted); font-size: 14px; padding: 60px 0; text-align: center; }
+
+  /* ---- Members panel ---- */
+  .members-panel { width: 270px; flex-shrink: 0; }
+  .member-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 2px; border-bottom: 1px solid var(--border); font-size: 12.5px; gap: 6px;
+  }
+  .member-row:last-of-type { border-bottom: none; }
+  .member-row .member-id { font-weight: 600; min-width: 0; }
+  .member-row select {
+    font-size: 11px; padding: 3px 4px; border-radius: 6px; border: 1.5px solid var(--border); font-family: inherit;
+  }
+  .member-row button.remove-btn {
+    border: none; background: transparent; color: var(--text-muted); font-size: 11px; cursor: pointer;
+  }
+  .member-row button.remove-btn:hover { color: var(--danger); }
+
+  .add-member-form { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .add-member-form input, .add-member-form select {
+    padding: 8px 9px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 12.5px; font-family: inherit;
+  }
+
+  /* ---- Modal ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(28, 30, 46, 0.45);
+    display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal {
+    background: #fff; border-radius: 12px; padding: 24px; width: 100%; max-width: 380px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+  .modal h3 { margin: 0 0 16px; font-family: "Poppins", sans-serif; font-size: 17px; }
+  .modal label { font-size: 11.5px; font-weight: 700; color: var(--text-muted); display: block; margin: 10px 0 5px; }
+  .modal input, .modal textarea {
+    width: 100%; padding: 9px 10px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 13px; font-family: inherit; resize: vertical;
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand"><span class="mark">◆</span> Flowboard</div>
+    <div class="who">
+      <button id="profile-btn" class="avatar-btn" type="button">
+        <span class="avatar-circle" id="avatar-initial">?</span>
+        <span id="whoami">User</span>
+      </button>
+      <button id="logout-btn" class="plain" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="error-banner" class="error-banner"></div>
+
+    <div class="layout">
+      <div class="panel boards-panel">
+        <h2>Your boards</h2>
+        <div id="boards-list"></div>
+        <form id="new-board-form" class="new-board-form">
+          <input id="new-board-title" type="text" placeholder="New board title" required />
+          <button type="submit" class="btn-accent">Add</button>
+        </form>
+      </div>
+
+      <div class="board-view">
+        <div id="board-view-content">
+          <p class="placeholder">Select a board, or create one, to get started.</p>
+        </div>
+      </div>
+
+      <div class="panel members-panel" id="members-panel" hidden>
+        <h2>Board members</h2>
+        <div id="members-list"></div>
+        <form id="add-member-form" class="add-member-form" hidden>
+          <input type="email" id="add-member-email" placeholder="Member email" required />
+          <select id="add-member-role">
+            <option value="developer">Developer</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button type="submit" class="btn-accent">Add member</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Profile modal -->
+  <div class="modal-overlay" id="profile-modal" hidden>
+    <div class="modal">
+      <h3>My profile</h3>
+      <label for="profile-fullname">Full name</label>
+      <input id="profile-fullname" type="text" placeholder="Your name" />
+      <label for="profile-bio">Bio</label>
+      <textarea id="profile-bio" rows="3" placeholder="A short bio"></textarea>
+      <label for="profile-avatar">Avatar URL</label>
+      <input id="profile-avatar" type="text" placeholder="https://..." />
+      <div class="modal-actions">
+        <button type="button" class="btn-outline" id="profile-cancel">Cancel</button>
+        <button type="button" class="btn-accent" id="profile-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE = "";
+
+  const token = sessionStorage.getItem("access_token");
+  if (!token) {
+    window.location.href = "index.html";
+  }
+
+  function decodeUserIdFromToken(t) {
+    try {
+      const payloadBase64 = t.split(".")[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/"));
+      return JSON.parse(payloadJson).sub ?? null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  const currentUserId = Number(decodeUserIdFromToken(token));
+
+  const boardsListEl = document.getElementById("boards-list");
+  const boardViewContentEl = document.getElementById("board-view-content");
+  const errorBannerEl = document.getElementById("error-banner");
+  const membersPanelEl = document.getElementById("members-panel");
+  const membersListEl = document.getElementById("members-list");
+  const addMemberFormEl = document.getElementById("add-member-form");
+
+  let boards = [];
+  let activeBoardId = null;
+  let activeBoard = null;
+  let members = [];
+  let myRole = null; // role on the currently selected board
+
+  function showError(message) {
+    errorBannerEl.textContent = message;
+    errorBannerEl.style.display = "block";
+  }
+  function clearError() {
+    errorBannerEl.style.display = "none";
+  }
+
+  async function apiRequest(path, options = {}) {
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+        ...(options.headers || {}),
+      },
+    });
+
+    if (res.status === 401) {
+      sessionStorage.removeItem("access_token");
+      window.location.href = "index.html";
+      throw new Error("Not authenticated");
+    }
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (_) {
+      // no JSON body (e.g. 204)
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  // ---------------- Profile (header avatar + modal) ----------------
+
+  function applyMyProfile(me) {
+    const label = me.full_name || me.email;
+    document.getElementById("whoami").textContent = label;
+    document.getElementById("avatar-initial").textContent = (label || "?").trim()[0].toUpperCase();
+    document.getElementById("profile-fullname").value = me.full_name || "";
+    document.getElementById("profile-bio").value = me.bio || "";
+    document.getElementById("profile-avatar").value = me.avatar_url || "";
+  }
+
+  async function loadMyProfile() {
+    // There's no GET /users/me endpoint — PUT with an empty body both
+    // reads back and (harmlessly) re-saves the current values, which is
+    // enough to populate the header/modal on page load.
+    const { ok, data } = await apiRequest("/users/me/profile", {
+      method: "PUT",
+      body: JSON.stringify({}),
+    });
+    if (ok) applyMyProfile(data);
+  }
+
+  document.getElementById("profile-btn").addEventListener("click", () => {
+    document.getElementById("profile-modal").hidden = false;
+  });
+  document.getElementById("profile-cancel").addEventListener("click", () => {
+    document.getElementById("profile-modal").hidden = true;
+  });
+  document.getElementById("profile-save").addEventListener("click", async () => {
+    clearError();
+    const body = {
+      full_name: document.getElementById("profile-fullname").value.trim() || null,
+      bio: document.getElementById("profile-bio").value.trim() || null,
+      avatar_url: document.getElementById("profile-avatar").value.trim() || null,
+    };
+    const { ok, data } = await apiRequest("/users/me/profile", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not save profile.");
+      return;
+    }
+    applyMyProfile(data);
+    document.getElementById("profile-modal").hidden = true;
+  });
+
+  // ---------------- Boards ----------------
+
+  function renderBoardsList() {
+    boardsListEl.innerHTML = "";
+    if (boards.length === 0) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "No boards yet — create your first one below.";
+      boardsListEl.appendChild(note);
+      return;
+    }
+    boards.forEach((board) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "board-item" + (board.id === activeBoardId ? " active" : "");
+      btn.textContent = board.title;
+      btn.addEventListener("click", () => selectBoard(board.id));
+      boardsListEl.appendChild(btn);
+    });
+  }
+
+  async function loadBoards() {
+    clearError();
+    const { ok, data } = await apiRequest("/boards");
+    if (!ok) {
+      showError("Could not load boards.");
+      return;
+    }
+    boards = data;
+    renderBoardsList();
+  }
+
+  async function selectBoard(boardId) {
+    activeBoardId = boardId;
+    activeBoard = boards.find((b) => b.id === boardId) || null;
+    renderBoardsList();
+    await loadMembers(boardId);
+    await loadLists(boardId);
+  }
+
+  // ---------------- Members panel ----------------
+
+  function renderMembers() {
+    membersListEl.innerHTML = "";
+    members.forEach((m) => {
+      const row = document.createElement("div");
+      row.className = "member-row";
+
+      const label = document.createElement("span");
+      label.className = "member-id";
+      label.textContent = (m.user_id === currentUserId ? "You" : "User #" + m.user_id);
+      row.appendChild(label);
+
+      if (myRole === "admin" && m.user_id !== currentUserId) {
+        const select = document.createElement("select");
+        ["admin", "manager", "developer"].forEach((r) => {
+          const opt = document.createElement("option");
+          opt.value = r;
+          opt.textContent = r[0].toUpperCase() + r.slice(1);
+          if (r === m.role) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", async () => {
+          clearError();
+          const { ok, data } = await apiRequest(`/boards/${activeBoardId}/members/${m.user_id}`, {
+            method: "PUT",
+            body: JSON.stringify({ role: select.value }),
+          });
+          if (!ok) {
+            showError((data && data.detail) || "Could not change role.");
+            select.value = m.role;
+            return;
+          }
+          await loadMembers(activeBoardId);
+        });
+        row.appendChild(select);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "remove-btn";
+        removeBtn.textContent = "✕";
+        removeBtn.addEventListener("click", async () => {
+          clearError();
+          const { ok, data } = await apiRequest(`/boards/${activeBoardId}/members/${m.user_id}`, {
+            method: "DELETE",
+          });
+          if (!ok) {
+            showError((data && data.detail) || "Could not remove member.");
+            return;
+          }
+          await loadMembers(activeBoardId);
+        });
+        row.appendChild(removeBtn);
+      } else {
+        const pill = document.createElement("span");
+        pill.className = "role-pill " + m.role;
+        pill.textContent = m.role;
+        row.appendChild(pill);
+      }
+
+      membersListEl.appendChild(row);
+    });
+  }
+
+  async function loadMembers(boardId) {
+    const { ok, data } = await apiRequest(`/boards/${boardId}/members`);
+    if (!ok) {
+      showError((data && data.detail) || "Could not load members.");
+      membersPanelEl.hidden = true;
+      return;
+    }
+    members = data;
+    const mine = members.find((m) => m.user_id === currentUserId);
+    myRole = mine ? mine.role : null;
+    addMemberFormEl.hidden = myRole !== "admin";
+    membersPanelEl.hidden = false;
+    renderMembers();
+  }
+
+  addMemberFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById("add-member-email");
+    const roleSelect = document.getElementById("add-member-role");
+    const email = emailInput.value.trim();
+    if (!email) return;
+
+    clearError();
+    const { ok, data } = await apiRequest(`/boards/${activeBoardId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email, role: roleSelect.value }),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not add member.");
+      return;
+    }
+    emailInput.value = "";
+    await loadMembers(activeBoardId);
+  });
+
+  // ---------------- Lists + cards ----------------
+
+  function canManage() {
+    return myRole === "admin" || myRole === "manager";
+  }
+
+  function renderCardsInto(stackEl, cards, listId) {
+    stackEl.innerHTML = "";
+    cards.forEach((c) => {
+      const isMine = c.assigned_user_id === currentUserId;
+      const item = document.createElement("div");
+      item.className = "card-item" + (isMine ? " mine" : "");
+
+      const title = document.createElement("div");
+      title.className = "card-title";
+      title.textContent = c.title;
+      item.appendChild(title);
+
+      if (c.description) {
+        const desc = document.createElement("div");
+        desc.className = "card-description";
+        desc.textContent = c.description;
+        item.appendChild(desc);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
+
+      if (c.assigned_user_id != null) {
+        const badge = document.createElement("span");
+        badge.className = "card-assignee";
+        badge.textContent = isMine ? "Assigned to you" : "User #" + c.assigned_user_id;
+        meta.appendChild(badge);
+      } else {
+        meta.appendChild(document.createElement("span"));
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      // Everyone who can act on this card (manager/admin on any card, or
+      // the assignee themself) gets an inline quick-edit for title/desc.
+      if (canManage() || isMine) {
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", async () => {
+          const newTitle = prompt("Card title", c.title);
+          if (newTitle === null) return;
+          const newDesc = prompt("Description (optional)", c.description || "");
+          if (newDesc === null) return;
+          clearError();
+          const { ok, data } = await apiRequest(`/cards/${c.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ title: newTitle, description: newDesc || null }),
+          });
+          if (!ok) {
+            showError((data && data.detail) || "Could not update card.");
+            return;
+          }
+          await loadCardsInto(stackEl, listId);
+        });
+        actions.appendChild(editBtn);
+      }
+
+      // Only admin/manager can delete, per the permission matrix.
+      if (canManage()) {
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "danger-text";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", async () => {
+          clearError();
+          const { ok, data } = await apiRequest(`/cards/${c.id}`, { method: "DELETE" });
+          if (!ok) {
+            showError((data && data.detail) || "Could not delete card.");
+            return;
+          }
+          await loadCardsInto(stackEl, listId);
+        });
+        actions.appendChild(delBtn);
+      }
+
+      meta.appendChild(actions);
+      item.appendChild(meta);
+      stackEl.appendChild(item);
+    });
+  }
+
+  async function loadCardsInto(stackEl, listId) {
+    const { ok, data } = await apiRequest(`/cards/?list_id=${listId}`);
+    if (!ok) {
+      showError((data && data.detail) || "Could not load cards for this list.");
+      return;
+    }
+    renderCardsInto(stackEl, data, listId);
+  }
+
+  function buildListColumn(l) {
+    const col = document.createElement("div");
+    col.className = "list-column";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = l.title;
+    col.appendChild(h3);
+
+    const cardsStack = document.createElement("div");
+    cardsStack.className = "cards-stack";
+    col.appendChild(cardsStack);
+
+    // Only admin/manager can create cards — a developer only edits what's
+    // already assigned to them, they never add new tickets themselves.
+    if (canManage()) {
+      const form = document.createElement("form");
+      form.className = "add-card-form";
+      form.innerHTML = `
+        <input type="text" class="card-title-input" placeholder="Card title" required />
+        <textarea class="card-desc-input" rows="2" placeholder="Description (optional)"></textarea>
+        <input type="email" class="card-assignee-input" placeholder="Assign to (must be a board member)" />
+        <button type="submit">+ Add a card</button>
+      `;
+      col.appendChild(form);
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const titleInput = form.querySelector(".card-title-input");
+        const descInput = form.querySelector(".card-desc-input");
+        const assigneeInput = form.querySelector(".card-assignee-input");
+
+        const title = titleInput.value.trim();
+        if (!title) return;
+        const description = descInput.value.trim() || null;
+        const assignee_email = assigneeInput.value.trim() || null;
+
+        clearError();
+        const { ok, data } = await apiRequest("/cards/", {
+          method: "POST",
+          body: JSON.stringify({ title, description, list_id: l.id, assignee_email }),
+        });
+        if (!ok) {
+          showError((data && data.detail) || "Could not create card.");
+          return;
+        }
+        titleInput.value = "";
+        descInput.value = "";
+        assigneeInput.value = "";
+        await loadCardsInto(cardsStack, l.id);
+      });
+    }
+
+    loadCardsInto(cardsStack, l.id);
+    return col;
+  }
+
+  function renderBoardView(board, lists) {
+    boardViewContentEl.innerHTML = "";
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "board-view-header";
+
+    const titleWrap = document.createElement("div");
+    titleWrap.style.display = "flex";
+    titleWrap.style.alignItems = "center";
+    titleWrap.style.gap = "10px";
+    const heading = document.createElement("h2");
+    heading.textContent = board.title;
+    titleWrap.appendChild(heading);
+    if (myRole) {
+      const pill = document.createElement("span");
+      pill.className = "role-pill " + myRole;
+      pill.textContent = myRole;
+      titleWrap.appendChild(pill);
+    }
+    headerRow.appendChild(titleWrap);
+
+    const actionsWrap = document.createElement("div");
+    actionsWrap.className = "header-actions";
+    if (myRole === "admin") {
+      const delBoardBtn = document.createElement("button");
+      delBoardBtn.type = "button";
+      delBoardBtn.className = "btn-danger-outline";
+      delBoardBtn.textContent = "Delete board";
+      delBoardBtn.addEventListener("click", async () => {
+        if (!confirm(`Delete "${board.title}"? This removes all its lists and cards.`)) return;
+        clearError();
+        const { ok, data } = await apiRequest(`/boards/${board.id}`, { method: "DELETE" });
+        if (!ok) {
+          showError((data && data.detail) || "Could not delete board.");
+          return;
+        }
+        activeBoardId = null;
+        membersPanelEl.hidden = true;
+        boardViewContentEl.innerHTML = '<p class="placeholder">Select a board, or create one, to get started.</p>';
+        await loadBoards();
+      });
+      actionsWrap.appendChild(delBoardBtn);
+    }
+    headerRow.appendChild(actionsWrap);
+
+    boardViewContentEl.appendChild(headerRow);
+
+    const row = document.createElement("div");
+    row.className = "lists-row";
+
+    lists.forEach((l) => {
+      row.appendChild(buildListColumn(l));
+    });
+
+    if (canManage()) {
+      const newListCard = document.createElement("div");
+      newListCard.className = "new-list-card";
+      newListCard.innerHTML = `
+        <form class="new-list-form">
+          <input type="text" placeholder="New list title" required />
+          <button type="submit">Add list</button>
+        </form>
+      `;
+      row.appendChild(newListCard);
+
+      newListCard.querySelector(".new-list-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = newListCard.querySelector("input");
+        const title = input.value.trim();
+        if (!title) return;
+
+        clearError();
+        const { ok, data } = await apiRequest("/lists/", {
+          method: "POST",
+          body: JSON.stringify({ title, board_id: board.id }),
+        });
+        if (!ok) {
+          showError((data && data.detail) || "Could not create list.");
+          return;
+        }
+        input.value = "";
+        await loadLists(board.id);
+      });
+    }
+
+    boardViewContentEl.appendChild(row);
+  }
+
+  async function loadLists(boardId) {
+    clearError();
+    const board = boards.find((b) => b.id === boardId) || activeBoard;
+    if (!board) return;
+
+    const { ok, data } = await apiRequest(`/lists/?board_id=${boardId}`);
+    if (!ok) {
+      showError((data && data.detail) || "Could not load lists for this board.");
+      return;
+    }
+    renderBoardView(board, data);
+  }
+
+  document.getElementById("new-board-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("new-board-title");
+    const title = input.value.trim();
+    if (!title) return;
+
+    clearError();
+    const { ok, data } = await apiRequest("/boards", {
+      method: "POST",
+      body: JSON.stringify({ title }),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not create board.");
+      return;
+    }
+    input.value = "";
+    await loadBoards();
+    await selectBoard(data.id);
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    sessionStorage.removeItem("access_token");
+    window.location.href = "index.html";
+  });
+
+  loadMyProfile();
+  loadBoards();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flowboard — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --border: #e4e7f1;
+    --text: #1c1e2e;
+    --text-muted: #6b7086;
+    --accent: #5b5bf6;
+    --accent-2: #8b5cf6;
+    --accent-hover: #4747d6;
+    --danger: #e0376a;
+    --danger-bg: #fde8ef;
+    --success: #0f9960;
+    --success-bg: #e3f9ef;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    background: var(--bg);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+  }
+
+  .layout {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ---------- Left hero panel ---------- */
+  .hero {
+    flex: 1.1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 56px 56px 48px;
+    color: #fff;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.14), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(255,255,255,0.10), transparent 50%),
+      linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    overflow: hidden;
+  }
+
+  .hero::before,
+  .hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .hero::before { width: 320px; height: 320px; top: -120px; right: -100px; }
+  .hero::after { width: 220px; height: 220px; bottom: -80px; left: -60px; }
+
+  .hero-brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  .hero-brand .mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .hero-copy {
+    position: relative;
+    max-width: 460px;
+  }
+
+  .hero-copy h1 {
+    font-family: "Poppins", sans-serif;
+    font-size: clamp(32px, 4vw, 44px);
+    line-height: 1.15;
+    font-weight: 700;
+    margin: 0 0 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-copy p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0 0 32px;
+  }
+
+  .hero-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .hero-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .hero-feature .dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .hero-foot {
+    position: relative;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* ---------- Right form panel ---------- */
+  .form-side {
+    flex: 1;
+    min-width: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 380px;
+    animation: rise 0.5s ease both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card h1 {
+    font-family: "Poppins", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 28px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 26px;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+
+  .tab.active {
+    background: var(--card);
+    color: var(--accent);
+    box-shadow: 0 2px 6px rgba(28, 30, 46, 0.1);
+  }
+
+  form { display: none; flex-direction: column; gap: 16px; }
+  form.active { display: flex; }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--card);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(91, 91, 246, 0.14);
+  }
+
+  button[type="submit"] {
+    margin-top: 8px;
+    padding: 12px 0;
+    border: none;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+    box-shadow: 0 8px 18px rgba(91, 91, 246, 0.28);
+  }
+
+  button[type="submit"]:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(91, 91, 246, 0.36); }
+  button[type="submit"]:active { transform: translateY(0); }
+  button[type="submit"]:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .message {
+    margin-top: 16px;
+    font-size: 13px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    display: none;
+  }
+
+  .message.error { display: block; background: var(--danger-bg); color: var(--danger); }
+  .message.success { display: block; background: var(--success-bg); color: var(--success); }
+
+  .session {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .session strong { color: var(--text); }
+
+  .api-url {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 860px) {
+    .hero { display: none; }
+    .form-side { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="layout">
+    <section class="hero">
+      <div class="hero-brand"><span class="mark">◆</span> Flowboard</div>
+
+      <div class="hero-copy">
+        <h1>Plan the work.<br />Ship it together.</h1>
+        <p>Boards, lists and cards for your whole team — with roles that
+        actually match how you work: Admins steer the board, Managers run
+        the lists, Developers own their tickets.</p>
+        <div class="hero-features">
+          <div class="hero-feature"><span class="dot">✓</span> Role-based boards for Admins, Managers &amp; Developers</div>
+          <div class="hero-feature"><span class="dot">✓</span> Assign tickets only to people on your own team</div>
+          <div class="hero-feature"><span class="dot">✓</span> Every board, list and card protected end to end</div>
+        </div>
+      </div>
+
+      <div class="hero-foot">Built with FastAPI · PostgreSQL · your own backend</div>
+    </section>
+
+    <section class="form-side">
+      <div class="card">
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in or create an account to continue.</p>
+
+        <div class="tabs">
+          <button type="button" class="tab active" data-target="login-form">Log in</button>
+          <button type="button" class="tab" data-target="register-form">Register</button>
+        </div>
+
+        <form id="login-form" class="active">
+          <div>
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" required autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+          </div>
+          <button type="submit">Log in</button>
+        </form>
+
+        <form id="register-form">
+          <div>
+            <label for="register-email">Email</label>
+            <input id="register-email" type="email" required autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label for="register-password">Password</label>
+            <input id="register-password" type="password" required autocomplete="new-password" minlength="8" placeholder="At least 8 characters" />
+          </div>
+          <button type="submit">Create account</button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div id="session" class="session" hidden>
+          <div><strong>Logged in</strong></div>
+          <div id="session-email"></div>
+          <div id="session-id" style="margin-top: 6px;"></div>
+        </div>
+
+        <p class="api-url">API: <span id="api-url-display"></span></p>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // Relative path: this page is served by FastAPI itself (StaticFiles),
+  // so the API lives at the same origin this page was loaded from.
+  const API_BASE = "";
+
+  document.getElementById("api-url-display").textContent = window.location.origin;
+
+  const tabs = document.querySelectorAll(".tab");
+  const forms = document.querySelectorAll("form");
+  const messageEl = document.getElementById("message");
+  const sessionEl = document.getElementById("session");
+  const sessionEmailEl = document.getElementById("session-email");
+  const sessionIdEl = document.getElementById("session-id");
+
+  // The login response only carries a JWT, not the id directly — the id
+  // is inside the token's "sub" claim, so decode just that part locally.
+  // This does NOT verify the token's signature; it only reads the claim
+  // for display. The server is still the one source of truth for auth.
+  function getUserIdFromToken(token) {
+    try {
+      const payloadBase64 = token.split(".")[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/"));
+      const payload = JSON.parse(payloadJson);
+      return payload.sub ?? null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      forms.forEach((f) => f.classList.remove("active"));
+      document.getElementById(tab.dataset.target).classList.add("active");
+      clearMessage();
+    });
+  });
+
+  function showMessage(text, type) {
+    messageEl.textContent = text;
+    messageEl.className = "message " + type;
+  }
+
+  function clearMessage() {
+    messageEl.textContent = "";
+    messageEl.className = "message";
+  }
+
+  function setSubmitting(form, isSubmitting) {
+    form.querySelector('button[type="submit"]').disabled = isSubmitting;
+  }
+
+  async function postJSON(path, body) {
+    const res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (_) {
+      // no JSON body
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function friendlyError(data, fallback) {
+    if (data && typeof data.detail === "string") return data.detail;
+    return fallback;
+  }
+
+  document.getElementById("register-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessage();
+    const form = e.target;
+    const email = document.getElementById("register-email").value.trim();
+    const password = document.getElementById("register-password").value;
+
+    setSubmitting(form, true);
+    try {
+      const { ok, data } = await postJSON("/auth/register", { email, password });
+      if (!ok) {
+        showMessage(friendlyError(data, "Could not register. Please try again."), "error");
+        return;
+      }
+      showMessage("Account created. You can log in now.", "success");
+      form.reset();
+      document.querySelector('.tab[data-target="login-form"]').click();
+      document.getElementById("login-email").value = email;
+    } catch (err) {
+      showMessage("Could not reach the server at " + API_BASE + ". Is it running?", "error");
+    } finally {
+      setSubmitting(form, false);
+    }
+  });
+
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessage();
+    const form = e.target;
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    setSubmitting(form, true);
+    try {
+      const { ok, data } = await postJSON("/auth/login", { email, password });
+      if (!ok) {
+        showMessage(friendlyError(data, "Invalid email or password."), "error");
+        return;
+      }
+      showMessage("Logged in successfully.", "success");
+      sessionEl.hidden = false;
+      sessionEmailEl.textContent = email;
+      const userId = getUserIdFromToken(data.access_token);
+      sessionIdEl.innerHTML = "<strong>ID:</strong> " + (userId ?? "unknown");
+
+      // Stored only in this browser tab's memory via sessionStorage —
+      // never sent anywhere except back to this same API as a header.
+      try {
+        sessionStorage.setItem("access_token", data.access_token);
+      } catch (_) {
+        // sessionStorage may be unavailable (private browsing, etc.) — not fatal.
+      }
+
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 500);
+    } catch (err) {
+      showMessage("Could not reach the server at " + API_BASE + ". Is it running?", "error");
+    } finally {
+      setSubmitting(form, false);
+    }
+  });
+</script>
+
+</body>
+</html>
