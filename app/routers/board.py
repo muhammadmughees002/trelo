@@ -4,10 +4,16 @@ from app.core.dependencies import get_db, get_current_user
 from app.core.permissions import get_membership_or_404, get_workspace_membership_or_404, MANAGE_ROLES
 from app.models.board import Board
 from app.models.board_member import BoardMember
+from app.models.list import List
 from app.models.user import User
 from app.schemas.board import BoardCreate, BoardOut
 
 router = APIRouter(prefix="/boards", tags=["boards"])
+
+# Every new board starts with this Kanban-style workflow. These are just
+# a convenient starting point, not a fixed structure — lists created this
+# way can still be freely renamed, deleted, or added to afterward.
+DEFAULT_LIST_TITLES = ["To Do", "In Progress", "Checking", "Done"]
 
 
 @router.post("", response_model=BoardOut, status_code=status.HTTP_201_CREATED)
@@ -24,6 +30,9 @@ def post_board(board_data: BoardCreate, db: Session = Depends(get_db), current_u
     # Board.owner_id directly (owner_id is kept only as a historical record
     # of who originally created the board).
     db.add(BoardMember(board_id=new_board.id, user_id=current_user.id, role="admin"))
+
+    for title in DEFAULT_LIST_TITLES:
+        db.add(List(title=title, board_id=new_board.id))
 
     db.commit()
     db.refresh(new_board)

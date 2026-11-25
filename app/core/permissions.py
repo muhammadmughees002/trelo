@@ -10,6 +10,34 @@ from app.models.user import User
 
 MANAGE_ROLES = ("admin", "manager")
 
+# Who can invite whom, generalized from the confirmed rule: an Admin can
+# invite anyone a Manager can, plus Admin itself; a Manager can never
+# invite an Admin. Boards have 3 roles, Workspaces only 2 (no
+# workspace-level developer tier).
+BOARD_INVITABLE_ROLES = {
+    "admin": ("admin", "manager", "developer"),
+    "manager": ("manager", "developer"),
+}
+WORKSPACE_INVITABLE_ROLES = {
+    "admin": ("admin", "manager"),
+    "manager": ("manager",),
+}
+
+
+def assert_can_invite(inviter_role: str, target_role: str, table: dict[str, tuple[str, ...]]) -> None:
+    """Raise 400 if inviter_role isn't allowed to invite someone as
+    target_role, per the given table (BOARD_INVITABLE_ROLES or
+    WORKSPACE_INVITABLE_ROLES). A 400, not a 404, here is correct: the
+    caller has already proven they're a legitimate admin/manager member
+    (that check 404s separately) — this is a plain "you can't assign that
+    role" validation error, not an access-hiding case."""
+    allowed = table.get(inviter_role, ())
+    if target_role not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"A {inviter_role} cannot invite someone as {target_role}",
+        )
+
 
 def get_workspace_membership_or_404(
     db: Session,

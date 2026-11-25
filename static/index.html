@@ -436,6 +436,41 @@
     return fallback;
   }
 
+  // Decide where a just-authenticated user lands: anyone with existing
+  // access (a workspace/board membership) or a pending invitation to act
+  // on goes to the dashboard; a brand-new account with nothing yet goes
+  // to their profile page first.
+  async function decideLandingPage(accessToken) {
+    const authHeaders = { "Content-Type": "application/json", "Authorization": "Bearer " + accessToken };
+    try {
+      const [invitesRes, workspacesRes, boardsRes] = await Promise.all([
+        fetch(API_BASE + "/invitations/me", { headers: authHeaders }),
+        fetch(API_BASE + "/workspaces", { headers: authHeaders }),
+        fetch(API_BASE + "/boards", { headers: authHeaders }),
+      ]);
+      const invites = invitesRes.ok ? await invitesRes.json() : [];
+      const workspaces = workspacesRes.ok ? await workspacesRes.json() : [];
+      const boards = boardsRes.ok ? await boardsRes.json() : [];
+      const hasAccessOrInvite = invites.length > 0 || workspaces.length > 0 || boards.length > 0;
+      return hasAccessOrInvite ? "dashboard.html" : "profile.html";
+    } catch (_) {
+      // If this check itself fails, fall back to the dashboard — it does
+      // its own auth/empty-state handling either way.
+      return "dashboard.html";
+    }
+  }
+
+  function storeTokenAndRedirect(accessToken) {
+    try {
+      sessionStorage.setItem("access_token", accessToken);
+    } catch (_) {
+      // sessionStorage may be unavailable (private browsing, etc.) — not fatal.
+    }
+    decideLandingPage(accessToken).then((page) => {
+      window.location.href = page;
+    });
+  }
+
   document.getElementById("register-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     clearMessage();
@@ -450,10 +485,21 @@
         showMessage(friendlyError(data, "Could not register. Please try again."), "error");
         return;
       }
-      showMessage("Account created. You can log in now.", "success");
-      form.reset();
-      document.querySelector('.tab[data-target="login-form"]').click();
-      document.getElementById("login-email").value = email;
+      showMessage("Account created — signing you in…", "success");
+
+      // Registering doesn't return a token on its own, so log in
+      // immediately with the same credentials and go straight to the
+      // new account's profile page, instead of making them log in by hand.
+      const loginResult = await postJSON("/auth/login", { email, password });
+      if (!loginResult.ok) {
+        // Registration itself still succeeded — just send them to log in manually.
+        showMessage("Account created. You can log in now.", "success");
+        form.reset();
+        document.querySelector('.tab[data-target="login-form"]').click();
+        document.getElementById("login-email").value = email;
+        return;
+      }
+      storeTokenAndRedirect(loginResult.data.access_token);
     } catch (err) {
       showMessage("Could not reach the server at " + API_BASE + ". Is it running?", "error");
     } finally {
@@ -481,17 +527,7 @@
       const userId = getUserIdFromToken(data.access_token);
       sessionIdEl.innerHTML = "<strong>ID:</strong> " + (userId ?? "unknown");
 
-      // Stored only in this browser tab's memory via sessionStorage —
-      // never sent anywhere except back to this same API as a header.
-      try {
-        sessionStorage.setItem("access_token", data.access_token);
-      } catch (_) {
-        // sessionStorage may be unavailable (private browsing, etc.) — not fatal.
-      }
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 500);
+      storeTokenAndRedirect(data.access_token);
     } catch (err) {
       showMessage("Could not reach the server at " + API_BASE + ". Is it running?", "error");
     } finally {

@@ -4,37 +4,13 @@ from app.core.dependencies import get_db, get_current_user
 from app.core.permissions import get_workspace_membership_or_404
 from app.models.workspace_member import WorkspaceMember
 from app.models.user import User
-from app.schemas.workspace_member import WorkspaceMemberCreate, WorkspaceMemberRoleUpdate, WorkspaceMemberOut
+from app.schemas.workspace_member import WorkspaceMemberRoleUpdate, WorkspaceMemberOut
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/members", tags=["workspace_members"])
 
-
-@router.post("", response_model=WorkspaceMemberOut, status_code=status.HTTP_201_CREATED)
-def add_member(
-    workspace_id: int,
-    member_data: WorkspaceMemberCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    get_workspace_membership_or_404(db, workspace_id, current_user, allowed_roles=("admin",))
-
-    user = db.query(User).filter(User.email == member_data.email).first()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user with that email")
-
-    existing = (
-        db.query(WorkspaceMember)
-        .filter(WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == user.id)
-        .first()
-    )
-    if existing is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already a member of this workspace")
-
-    new_member = WorkspaceMember(workspace_id=workspace_id, user_id=user.id, role=member_data.role)
-    db.add(new_member)
-    db.commit()
-    db.refresh(new_member)
-    return new_member
+# Adding a member directly has been replaced by the invite+accept flow —
+# see routers/invitation.py's POST /workspaces/{workspace_id}/invitations.
+# Membership rows are now only ever created by accepting an invitation.
 
 
 @router.get("", response_model=list[WorkspaceMemberOut])

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flowboard — My Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --border: #e4e7f1;
+    --text: #1c1e2e;
+    --text-muted: #6b7086;
+    --accent: #5b5bf6;
+    --accent-2: #8b5cf6;
+    --accent-hover: #4747d6;
+    --accent-soft: #eef0ff;
+    --danger: #e0376a;
+    --danger-bg: #fde8ef;
+    --success: #0f9960;
+    --success-bg: #e3f9ef;
+    --admin: #8b5cf6;
+    --manager: #2f9e6e;
+    --developer: #2f80c7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(91, 91, 246, 0.25);
+  }
+
+  header .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: "Poppins", sans-serif; font-weight: 700; font-size: 17px;
+  }
+  header .brand .mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255, 255, 255, 0.22);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  header button.plain {
+    background: rgba(255, 255, 255, 0.16); border: none; color: #fff;
+    padding: 7px 13px; border-radius: 7px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  }
+  header button.plain:hover { background: rgba(255, 255, 255, 0.26); }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 26px;
+  }
+
+  .error-banner {
+    display: none; background: var(--danger-bg); color: var(--danger);
+    padding: 12px 16px; border-radius: 9px; margin-bottom: 18px; font-size: 13px;
+  }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px; margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); margin: 0 0 16px; font-weight: 700;
+  }
+
+  .identity-row {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  }
+  .avatar-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 22px; flex-shrink: 0;
+  }
+  .identity-row h1 {
+    font-family: "Poppins", sans-serif; font-size: 22px; margin: 0 0 3px; font-weight: 700;
+  }
+  .identity-row .user-id {
+    font-size: 12.5px; color: var(--text-muted);
+  }
+  .identity-row .user-id strong { color: var(--text); font-weight: 700; }
+
+  label {
+    font-size: 11.5px; font-weight: 700; color: var(--text-muted);
+    display: block; margin: 14px 0 6px;
+  }
+  label:first-of-type { margin-top: 0; }
+  input, textarea {
+    width: 100%; padding: 10px 11px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 13.5px; font-family: inherit; resize: vertical;
+  }
+  input:focus, textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 91, 246, 0.14);
+  }
+
+  .btn-accent {
+    padding: 10px 16px; border: none; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+    margin-top: 16px;
+  }
+  .btn-accent:hover { transform: translateY(-1px); }
+
+  .btn-outline {
+    padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+    background: #fff; color: var(--text); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .empty-note { font-size: 13px; color: var(--text-muted); }
+
+  .invite-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap;
+  }
+  .invite-row:last-child { border-bottom: none; }
+  .invite-info { font-size: 13.5px; }
+  .invite-info .kind-label {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); margin-right: 6px;
+  }
+  .invite-info strong { color: var(--text); }
+  .role-pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 20px; margin-left: 6px;
+  }
+  .role-pill.admin { background: #f1e9ff; color: var(--admin); }
+  .role-pill.manager { background: #e4f6ed; color: var(--manager); }
+  .role-pill.developer { background: #e5f1fb; color: var(--developer); }
+
+  .invite-actions { display: flex; gap: 8px; }
+  .invite-actions button {
+    border: none; border-radius: 7px; padding: 7px 12px; font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .invite-actions .accept-btn { background: var(--success-bg); color: var(--success); }
+  .invite-actions .decline-btn { background: var(--danger-bg); color: var(--danger); }
+
+  .go-dashboard-row { text-align: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand"><span class="mark">◆</span> Flowboard</div>
+    <button id="logout-btn" class="plain" type="button">Log out</button>
+  </header>
+
+  <main>
+    <div id="error-banner" class="error-banner"></div>
+
+    <div class="panel">
+      <div class="identity-row">
+        <span class="avatar-circle" id="avatar-initial">?</span>
+        <div>
+          <h1 id="display-name">Loading…</h1>
+          <div class="user-id">Unique ID: <strong id="display-id">—</strong> · <span id="display-email"></span></div>
+        </div>
+      </div>
+
+      <label for="profile-fullname">Full name</label>
+      <input id="profile-fullname" type="text" placeholder="Your name" />
+      <label for="profile-bio">Bio</label>
+      <textarea id="profile-bio" rows="3" placeholder="A short bio"></textarea>
+      <label for="profile-avatar">Avatar URL</label>
+      <input id="profile-avatar" type="text" placeholder="https://..." />
+      <button type="button" id="profile-save" class="btn-accent">Save profile</button>
+    </div>
+
+    <div class="panel">
+      <h2>Pending invitations</h2>
+      <div id="invitations-list"></div>
+    </div>
+
+    <div class="go-dashboard-row">
+      <button type="button" id="go-dashboard-btn" class="btn-outline">Go to dashboard →</button>
+    </div>
+  </main>
+
+<script>
+  const API_BASE = "";
+  const token = sessionStorage.getItem("access_token");
+  if (!token) {
+    window.location.href = "index.html";
+  }
+
+  function decodeUserIdFromToken(t) {
+    try {
+      const payloadBase64 = t.split(".")[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/"));
+      return JSON.parse(payloadJson).sub ?? null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  const errorBannerEl = document.getElementById("error-banner");
+  function showError(message) {
+    errorBannerEl.textContent = message;
+    errorBannerEl.style.display = "block";
+  }
+  function clearError() {
+    errorBannerEl.style.display = "none";
+  }
+
+  async function apiRequest(path, options = {}) {
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 401) {
+      sessionStorage.removeItem("access_token");
+      window.location.href = "index.html";
+      throw new Error("Not authenticated");
+    }
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (_) {
+      // no JSON body
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function applyProfile(me) {
+    const label = me.full_name || me.email;
+    document.getElementById("display-name").textContent = label;
+    document.getElementById("display-id").textContent = "#" + me.id;
+    document.getElementById("display-email").textContent = me.email;
+    document.getElementById("avatar-initial").textContent = (label || "?").trim()[0].toUpperCase();
+    document.getElementById("profile-fullname").value = me.full_name || "";
+    document.getElementById("profile-bio").value = me.bio || "";
+    document.getElementById("profile-avatar").value = me.avatar_url || "";
+  }
+
+  async function loadProfile() {
+    // No GET /users/me endpoint — an empty-body PUT both reads back and
+    // harmlessly re-saves the current values.
+    const { ok, data } = await apiRequest("/users/me/profile", {
+      method: "PUT",
+      body: JSON.stringify({}),
+    });
+    if (ok) {
+      applyProfile(data);
+    } else {
+      document.getElementById("display-id").textContent = "#" + (decodeUserIdFromToken(token) ?? "?");
+    }
+  }
+
+  document.getElementById("profile-save").addEventListener("click", async () => {
+    clearError();
+    const body = {
+      full_name: document.getElementById("profile-fullname").value.trim() || null,
+      bio: document.getElementById("profile-bio").value.trim() || null,
+      avatar_url: document.getElementById("profile-avatar").value.trim() || null,
+    };
+    const { ok, data } = await apiRequest("/users/me/profile", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not save profile.");
+      return;
+    }
+    applyProfile(data);
+  });
+
+  function renderInvitations(invitations) {
+    const listEl = document.getElementById("invitations-list");
+    listEl.innerHTML = "";
+
+    if (invitations.length === 0) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "No pending invitations right now.";
+      listEl.appendChild(note);
+      return;
+    }
+
+    invitations.forEach((inv) => {
+      const row = document.createElement("div");
+      row.className = "invite-row";
+
+      const info = document.createElement("div");
+      info.className = "invite-info";
+      const kindLabel = inv.kind === "workspace" ? "Workspace" : "Board";
+      info.innerHTML = `<span class="kind-label">${kindLabel}</span><strong>${inv.target_name}</strong>`;
+      const rolePill = document.createElement("span");
+      rolePill.className = "role-pill " + inv.role;
+      rolePill.textContent = inv.role;
+      info.appendChild(rolePill);
+      row.appendChild(info);
+
+      const actions = document.createElement("div");
+      actions.className = "invite-actions";
+
+      const acceptBtn = document.createElement("button");
+      acceptBtn.type = "button";
+      acceptBtn.className = "accept-btn";
+      acceptBtn.textContent = "Accept";
+      acceptBtn.addEventListener("click", async () => {
+        clearError();
+        const { ok, data } = await apiRequest(`/invitations/${inv.kind}/${inv.id}/accept`, { method: "POST" });
+        if (!ok) {
+          showError((data && data.detail) || "Could not accept invitation.");
+          return;
+        }
+        await loadInvitations();
+      });
+      actions.appendChild(acceptBtn);
+
+      const declineBtn = document.createElement("button");
+      declineBtn.type = "button";
+      declineBtn.className = "decline-btn";
+      declineBtn.textContent = "Decline";
+      declineBtn.addEventListener("click", async () => {
+        clearError();
+        const { ok, data } = await apiRequest(`/invitations/${inv.kind}/${inv.id}/decline`, { method: "POST" });
+        if (!ok) {
+          showError((data && data.detail) || "Could not decline invitation.");
+          return;
+        }
+        await loadInvitations();
+      });
+      actions.appendChild(declineBtn);
+
+      row.appendChild(actions);
+      listEl.appendChild(row);
+    });
+  }
+
+  async function loadInvitations() {
+    clearError();
+    const { ok, data } = await apiRequest("/invitations/me");
+    if (!ok) {
+      showError((data && data.detail) || "Could not load invitations.");
+      return;
+    }
+    renderInvitations(data);
+  }
+
+  document.getElementById("go-dashboard-btn").addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    sessionStorage.removeItem("access_token");
+    window.location.href = "index.html";
+  });
+
+  loadProfile();
+  loadInvitations();
+</script>
+
+</body>
+</html>

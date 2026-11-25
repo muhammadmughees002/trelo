@@ -1,40 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.core.permissions import get_membership_or_404
+from app.core.permissions import get_membership_or_404, MANAGE_ROLES
 from app.models.board_member import BoardMember
 from app.models.user import User
-from app.schemas.board_member import BoardMemberCreate, BoardMemberRoleUpdate, BoardMemberOut
+from app.schemas.board_member import BoardMemberRoleUpdate, BoardMemberOut
 
 router = APIRouter(prefix="/boards/{board_id}/members", tags=["board_members"])
 
-
-@router.post("", response_model=BoardMemberOut, status_code=status.HTTP_201_CREATED)
-def add_member(
-    board_id: int,
-    member_data: BoardMemberCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    get_membership_or_404(db, board_id, current_user, allowed_roles=("admin",))
-
-    user = db.query(User).filter(User.email == member_data.email).first()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user with that email")
-
-    existing = (
-        db.query(BoardMember)
-        .filter(BoardMember.board_id == board_id, BoardMember.user_id == user.id)
-        .first()
-    )
-    if existing is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already a member of this board")
-
-    new_member = BoardMember(board_id=board_id, user_id=user.id, role=member_data.role)
-    db.add(new_member)
-    db.commit()
-    db.refresh(new_member)
-    return new_member
+# Adding a member directly (without an invitation) has been replaced by
+# the invite+accept flow — see routers/invitation.py's
+# POST /boards/{board_id}/invitations. Membership rows are now only ever
+# created by accepting an invitation.
 
 
 @router.get("", response_model=list[BoardMemberOut])

@@ -386,9 +386,9 @@
             <input type="email" id="add-workspace-member-email" placeholder="Member email" required />
             <select id="add-workspace-member-role">
               <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
+              <option value="admin" id="add-workspace-member-admin-option">Admin</option>
             </select>
-            <button type="submit" class="btn-accent">Add member</button>
+            <button type="submit" class="btn-accent">Send invite</button>
           </form>
           <button type="button" id="delete-workspace-btn" class="btn-danger-outline" style="margin-top: 10px; width: 100%;" hidden>Delete workspace</button>
         </div>
@@ -417,9 +417,9 @@
           <select id="add-member-role">
             <option value="developer">Developer</option>
             <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
+            <option value="admin" id="add-member-admin-option">Admin</option>
           </select>
-          <button type="submit" class="btn-accent">Add member</button>
+          <button type="submit" class="btn-accent">Send invite</button>
         </form>
       </div>
     </div>
@@ -680,7 +680,10 @@
     rolePill.textContent = myWorkspaceRole || "";
     rolePill.className = "role-pill " + (myWorkspaceRole || "");
 
-    addWorkspaceMemberFormEl.hidden = myWorkspaceRole !== "admin";
+    // A workspace manager can invite too (as manager only); admin can
+    // invite as admin or manager.
+    addWorkspaceMemberFormEl.hidden = !canManageWorkspace();
+    document.getElementById("add-workspace-member-admin-option").hidden = myWorkspaceRole !== "admin";
     document.getElementById("delete-workspace-btn").hidden = myWorkspaceRole !== "admin";
     newBoardFormEl.hidden = !canManageWorkspace();
 
@@ -706,15 +709,16 @@
     if (!email) return;
 
     clearError();
-    const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}/members`, {
+    const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}/invitations`, {
       method: "POST",
       body: JSON.stringify({ email, role: roleSelect.value }),
     });
     if (!ok) {
-      showError((data && data.detail) || "Could not add workspace member.");
+      showError((data && data.detail) || "Could not send invitation.");
       return;
     }
     emailInput.value = "";
+    alert("Invitation sent — they'll see it on their profile page once they log in.");
     await loadWorkspaceMembers(activeWorkspaceId);
   });
 
@@ -883,7 +887,11 @@
     members = data;
     const mine = members.find((m) => m.user_id === currentUserId);
     myRole = mine ? mine.role : null;
-    addMemberFormEl.hidden = myRole !== "admin";
+    // Both admin and manager can invite now — admin can invite as any
+    // role, a manager can't invite someone as admin (enforced server-side
+    // too; this just keeps the option out of the picker).
+    addMemberFormEl.hidden = !canManage();
+    document.getElementById("add-member-admin-option").hidden = myRole !== "admin";
     membersPanelEl.hidden = false;
     renderMembers();
   }
@@ -896,15 +904,16 @@
     if (!email) return;
 
     clearError();
-    const { ok, data } = await apiRequest(`/boards/${activeBoardId}/members`, {
+    const { ok, data } = await apiRequest(`/boards/${activeBoardId}/invitations`, {
       method: "POST",
       body: JSON.stringify({ email, role: roleSelect.value }),
     });
     if (!ok) {
-      showError((data && data.detail) || "Could not add member.");
+      showError((data && data.detail) || "Could not send invitation.");
       return;
     }
     emailInput.value = "";
+    alert("Invitation sent — they'll see it on their profile page once they log in.");
     await loadMembers(activeBoardId);
   });
 
