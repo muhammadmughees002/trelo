@@ -3,11 +3,36 @@ from sqlalchemy.orm import Session
 
 from app.models.board import Board
 from app.models.board_member import BoardMember
+from app.models.workspace_member import WorkspaceMember
 from app.models.list import List
 from app.models.card import Card
 from app.models.user import User
 
 MANAGE_ROLES = ("admin", "manager")
+
+
+def get_workspace_membership_or_404(
+    db: Session,
+    workspace_id: int,
+    current_user: User,
+    allowed_roles: tuple[str, ...] | None = None,
+) -> WorkspaceMember:
+    """Same convention as get_membership_or_404, one level up: 404s
+    (never 403) whether the workspace doesn't exist, the user isn't a
+    member, or the member's role isn't in allowed_roles."""
+    membership = (
+        db.query(WorkspaceMember)
+        .filter(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.user_id == current_user.id,
+        )
+        .first()
+    )
+    if membership is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+    if allowed_roles is not None and membership.role not in allowed_roles:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+    return membership
 
 
 def get_membership_or_404(

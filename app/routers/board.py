@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.core.permissions import get_membership_or_404
+from app.core.permissions import get_membership_or_404, get_workspace_membership_or_404, MANAGE_ROLES
 from app.models.board import Board
 from app.models.board_member import BoardMember
 from app.models.user import User
@@ -12,7 +12,10 @@ router = APIRouter(prefix="/boards", tags=["boards"])
 
 @router.post("", response_model=BoardOut, status_code=status.HTTP_201_CREATED)
 def post_board(board_data: BoardCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_board = Board(title=board_data.title, owner_id=current_user.id)
+    # Only a workspace admin/manager may create a board inside it.
+    get_workspace_membership_or_404(db, board_data.workspace_id, current_user, allowed_roles=MANAGE_ROLES)
+
+    new_board = Board(title=board_data.title, owner_id=current_user.id, workspace_id=board_data.workspace_id)
     db.add(new_board)
     db.flush()  # assigns new_board.id without ending the transaction
 
