@@ -154,7 +154,18 @@
     font-weight: 700;
   }
 
-  .boards-panel { width: 250px; flex-shrink: 0; }
+  .layout { flex-wrap: wrap; }
+
+  .workspaces-panel { width: 230px; flex-shrink: 0; }
+  .boards-panel { width: 230px; flex-shrink: 0; }
+
+  .workspace-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 4px 0 12px; gap: 6px;
+  }
+  .workspace-meta h3 {
+    font-size: 13px; margin: 0; font-weight: 700; font-family: "Poppins", sans-serif;
+  }
 
   .board-item {
     display: block;
@@ -357,10 +368,36 @@
     <div id="error-banner" class="error-banner"></div>
 
     <div class="layout">
+      <div class="panel workspaces-panel">
+        <h2>Workspaces</h2>
+        <div id="workspaces-list"></div>
+        <form id="new-workspace-form" class="new-board-form">
+          <input id="new-workspace-name" type="text" placeholder="New workspace name" required />
+          <button type="submit" class="btn-accent">Add</button>
+        </form>
+
+        <div id="workspace-detail" hidden style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);">
+          <div class="workspace-meta">
+            <h3 id="workspace-detail-name"></h3>
+            <span class="role-pill" id="workspace-role-pill"></span>
+          </div>
+          <div id="workspace-members-list"></div>
+          <form id="add-workspace-member-form" class="add-member-form" hidden>
+            <input type="email" id="add-workspace-member-email" placeholder="Member email" required />
+            <select id="add-workspace-member-role">
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="submit" class="btn-accent">Add member</button>
+          </form>
+          <button type="button" id="delete-workspace-btn" class="btn-danger-outline" style="margin-top: 10px; width: 100%;" hidden>Delete workspace</button>
+        </div>
+      </div>
+
       <div class="panel boards-panel">
-        <h2>Your boards</h2>
+        <h2>Boards</h2>
         <div id="boards-list"></div>
-        <form id="new-board-form" class="new-board-form">
+        <form id="new-board-form" class="new-board-form" hidden>
           <input id="new-board-title" type="text" placeholder="New board title" required />
           <button type="submit" class="btn-accent">Add</button>
         </form>
@@ -425,12 +462,23 @@
 
   const currentUserId = Number(decodeUserIdFromToken(token));
 
+  const workspacesListEl = document.getElementById("workspaces-list");
+  const workspaceDetailEl = document.getElementById("workspace-detail");
+  const workspaceMembersListEl = document.getElementById("workspace-members-list");
+  const addWorkspaceMemberFormEl = document.getElementById("add-workspace-member-form");
+  const newBoardFormEl = document.getElementById("new-board-form");
+
   const boardsListEl = document.getElementById("boards-list");
   const boardViewContentEl = document.getElementById("board-view-content");
   const errorBannerEl = document.getElementById("error-banner");
   const membersPanelEl = document.getElementById("members-panel");
   const membersListEl = document.getElementById("members-list");
   const addMemberFormEl = document.getElementById("add-member-form");
+
+  let workspaces = [];
+  let activeWorkspaceId = null;
+  let workspaceMembers = [];
+  let myWorkspaceRole = null; // role on the currently selected workspace
 
   let boards = [];
   let activeBoardId = null;
@@ -518,18 +566,221 @@
     document.getElementById("profile-modal").hidden = true;
   });
 
+  // ---------------- Workspaces ----------------
+
+  function canManageWorkspace() {
+    return myWorkspaceRole === "admin" || myWorkspaceRole === "manager";
+  }
+
+  function renderWorkspacesList() {
+    workspacesListEl.innerHTML = "";
+    if (workspaces.length === 0) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "No workspaces yet — create one below.";
+      workspacesListEl.appendChild(note);
+      return;
+    }
+    workspaces.forEach((ws) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "board-item" + (ws.id === activeWorkspaceId ? " active" : "");
+      btn.textContent = ws.name;
+      btn.addEventListener("click", () => selectWorkspace(ws.id));
+      workspacesListEl.appendChild(btn);
+    });
+  }
+
+  async function loadWorkspaces() {
+    clearError();
+    const { ok, data } = await apiRequest("/workspaces");
+    if (!ok) {
+      showError("Could not load workspaces.");
+      return;
+    }
+    workspaces = data;
+    renderWorkspacesList();
+  }
+
+  function renderWorkspaceMembers() {
+    workspaceMembersListEl.innerHTML = "";
+    workspaceMembers.forEach((m) => {
+      const row = document.createElement("div");
+      row.className = "member-row";
+
+      const label = document.createElement("span");
+      label.className = "member-id";
+      label.textContent = (m.user_id === currentUserId ? "You" : "User #" + m.user_id);
+      row.appendChild(label);
+
+      if (myWorkspaceRole === "admin" && m.user_id !== currentUserId) {
+        const select = document.createElement("select");
+        ["admin", "manager"].forEach((r) => {
+          const opt = document.createElement("option");
+          opt.value = r;
+          opt.textContent = r[0].toUpperCase() + r.slice(1);
+          if (r === m.role) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", async () => {
+          clearError();
+          const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}/members/${m.user_id}`, {
+            method: "PUT",
+            body: JSON.stringify({ role: select.value }),
+          });
+          if (!ok) {
+            showError((data && data.detail) || "Could not change role.");
+            select.value = m.role;
+            return;
+          }
+          await loadWorkspaceMembers(activeWorkspaceId);
+        });
+        row.appendChild(select);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "remove-btn";
+        removeBtn.textContent = "✕";
+        removeBtn.addEventListener("click", async () => {
+          clearError();
+          const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}/members/${m.user_id}`, {
+            method: "DELETE",
+          });
+          if (!ok) {
+            showError((data && data.detail) || "Could not remove member.");
+            return;
+          }
+          await loadWorkspaceMembers(activeWorkspaceId);
+        });
+        row.appendChild(removeBtn);
+      } else {
+        const pill = document.createElement("span");
+        pill.className = "role-pill " + m.role;
+        pill.textContent = m.role;
+        row.appendChild(pill);
+      }
+
+      workspaceMembersListEl.appendChild(row);
+    });
+  }
+
+  async function loadWorkspaceMembers(workspaceId) {
+    const { ok, data } = await apiRequest(`/workspaces/${workspaceId}/members`);
+    if (!ok) {
+      showError((data && data.detail) || "Could not load workspace members.");
+      return;
+    }
+    workspaceMembers = data;
+    const mine = workspaceMembers.find((m) => m.user_id === currentUserId);
+    myWorkspaceRole = mine ? mine.role : null;
+
+    const ws = workspaces.find((w) => w.id === workspaceId);
+    document.getElementById("workspace-detail-name").textContent = ws ? ws.name : "";
+    const rolePill = document.getElementById("workspace-role-pill");
+    rolePill.textContent = myWorkspaceRole || "";
+    rolePill.className = "role-pill " + (myWorkspaceRole || "");
+
+    addWorkspaceMemberFormEl.hidden = myWorkspaceRole !== "admin";
+    document.getElementById("delete-workspace-btn").hidden = myWorkspaceRole !== "admin";
+    newBoardFormEl.hidden = !canManageWorkspace();
+
+    workspaceDetailEl.hidden = false;
+    renderWorkspaceMembers();
+  }
+
+  async function selectWorkspace(workspaceId) {
+    activeWorkspaceId = workspaceId;
+    activeBoardId = null;
+    membersPanelEl.hidden = true;
+    boardViewContentEl.innerHTML = '<p class="placeholder">Select a board, or create one, to get started.</p>';
+    renderWorkspacesList();
+    await loadWorkspaceMembers(workspaceId);
+    renderBoardsList();
+  }
+
+  addWorkspaceMemberFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById("add-workspace-member-email");
+    const roleSelect = document.getElementById("add-workspace-member-role");
+    const email = emailInput.value.trim();
+    if (!email) return;
+
+    clearError();
+    const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email, role: roleSelect.value }),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not add workspace member.");
+      return;
+    }
+    emailInput.value = "";
+    await loadWorkspaceMembers(activeWorkspaceId);
+  });
+
+  document.getElementById("delete-workspace-btn").addEventListener("click", async () => {
+    const ws = workspaces.find((w) => w.id === activeWorkspaceId);
+    if (!ws) return;
+    if (!confirm(`Delete "${ws.name}"? This removes every board, list and card inside it.`)) return;
+
+    clearError();
+    const { ok, data } = await apiRequest(`/workspaces/${activeWorkspaceId}`, { method: "DELETE" });
+    if (!ok) {
+      showError((data && data.detail) || "Could not delete workspace.");
+      return;
+    }
+    activeWorkspaceId = null;
+    workspaceDetailEl.hidden = true;
+    activeBoardId = null;
+    membersPanelEl.hidden = true;
+    boardViewContentEl.innerHTML = '<p class="placeholder">Select a board, or create one, to get started.</p>';
+    await loadWorkspaces();
+    renderBoardsList();
+  });
+
+  document.getElementById("new-workspace-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("new-workspace-name");
+    const name = input.value.trim();
+    if (!name) return;
+
+    clearError();
+    const { ok, data } = await apiRequest("/workspaces", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+    if (!ok) {
+      showError((data && data.detail) || "Could not create workspace.");
+      return;
+    }
+    input.value = "";
+    await loadWorkspaces();
+    await selectWorkspace(data.id);
+  });
+
   // ---------------- Boards ----------------
 
   function renderBoardsList() {
     boardsListEl.innerHTML = "";
-    if (boards.length === 0) {
+
+    if (activeWorkspaceId === null) {
       const note = document.createElement("p");
       note.className = "empty-note";
-      note.textContent = "No boards yet — create your first one below.";
+      note.textContent = "Select a workspace to see its boards.";
       boardsListEl.appendChild(note);
       return;
     }
-    boards.forEach((board) => {
+
+    const boardsInWorkspace = boards.filter((b) => b.workspace_id === activeWorkspaceId);
+
+    if (boardsInWorkspace.length === 0) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "No boards in this workspace yet.";
+      boardsListEl.appendChild(note);
+      return;
+    }
+    boardsInWorkspace.forEach((board) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "board-item" + (board.id === activeBoardId ? " active" : "");
@@ -912,8 +1163,9 @@
     renderBoardView(board, data);
   }
 
-  document.getElementById("new-board-form").addEventListener("submit", async (e) => {
+  newBoardFormEl.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (activeWorkspaceId === null) return;
     const input = document.getElementById("new-board-title");
     const title = input.value.trim();
     if (!title) return;
@@ -921,7 +1173,7 @@
     clearError();
     const { ok, data } = await apiRequest("/boards", {
       method: "POST",
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ title, workspace_id: activeWorkspaceId }),
     });
     if (!ok) {
       showError((data && data.detail) || "Could not create board.");
@@ -938,6 +1190,7 @@
   });
 
   loadMyProfile();
+  loadWorkspaces();
   loadBoards();
 </script>
 
