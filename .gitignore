@@ -13,3 +13,6 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
+# Alembic migrations — intentionally untracked per project decision
+alembic/
